@@ -56,7 +56,14 @@ namespace :source do
     puts nh_version_precompiler_switch
     
     msb.properties = { :configuration => :Release, :DefineConstants => nh_version_precompiler_switch }
-    msb.targets [:Clean, :Build]
+    msb.targets [:Build]
+    msb.solution = 'src/FluentNHibernate.sln'
+  end
+  
+  desc 'Clean the source'
+  msbuild :clean do |msb|
+    msb.properties = { :configuration => :Release }
+    msb.targets [:Clean]
     msb.solution = 'src/FluentNHibernate.sln'
   end
 end
@@ -80,7 +87,7 @@ end
 
 namespace :build do
   desc 'Run full build including tests'
-  task :all => ['source:update_version', 'source:compile', 'specs:all'] do
+  task :all => ['source:clean', 'source:update_version', 'source:compile', 'specs:all'] do
     puts 'Copying output to build directory'
       Dir.mkdir 'build' unless File.exist? 'build'
       Dir.glob 'src/FluentNHibernate/bin/Release/*.{dll,pdb,xml}' do |path|
@@ -157,8 +164,8 @@ namespace :package do
   nugetpack do |nu|
     nu.command = 'tools/nuget/NuGet.exe'
     nu.nuspec = 'build/fluentnhibernate.nuspec'
-    nu.base_folder = 'build'
-    nu.output = 'dist'
+    nu.base_path = 'build'
+    nu.output_directory = 'dist'
   end
 
   desc 'Create nuget spec and package'
